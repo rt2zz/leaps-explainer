@@ -1,0 +1,220 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>How LEAP calls respond to a 5% stock move</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="How 1-year LEAP call options respond to a 5% stock move, by strike and timing.">
+<style>
+:root{color-scheme:light dark;--radius:10px;--font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;--font-mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+--background:#fcfcfb;--foreground:#1a1a19;--muted-foreground:#6b6b66;--card:#ffffff;--popover:#ffffff;--secondary:#f2f2ef;--border:#e4e4df;--primary:#2563eb;--code-background:#f0f0ec;
+--success:#16a34a;--destructive:#dc2626;--chart-1:#2563eb;--chart-2:#0d9488;--chart-3:#d97706;--chart-4:#9333ea}
+@media (prefers-color-scheme:dark){:root{--background:#1a1a19;--foreground:#ededeb;--muted-foreground:#a3a39e;--card:#222221;--popover:#2a2a29;--secondary:#262625;--border:#363634;--primary:#3b82f6;--code-background:#2c2c2a;
+--success:#22c55e;--destructive:#ef4444;--chart-1:#3b82f6;--chart-2:#0d9488;--chart-3:#d97706;--chart-4:#a855f7}}
+html{background:var(--background)}
+body{padding:40px 20px 56px}
+h1{font-size:28px;letter-spacing:-.02em;margin:0 0 8px;line-height:1.2}
+</style>
+
+<style>
+:root{--gap:2px}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font-sans,system-ui,sans-serif);color:var(--foreground);line-height:1.45}
+.wrap{max-width:728px;margin:0 auto}
+h2{font-size:17px;margin:28px 0 4px;font-weight:600}
+p.sub{margin:0 0 12px;color:var(--muted-foreground);font-size:13px}
+.lede{font-size:14px;color:var(--muted-foreground);margin:0 0 16px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.tile .n{font-size:26px;font-weight:650;letter-spacing:-.02em}
+.tile .l{font-size:12.5px;color:var(--muted-foreground);margin-top:2px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted-foreground);margin:4px 0 6px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:3px;border-radius:2px;display:inline-block}
+svg{display:block;overflow:visible}
+svg text{font-family:var(--font-sans,system-ui);font-size:11px;fill:var(--muted-foreground)}
+.grid line{stroke:var(--border);stroke-width:1}
+.zero{stroke:var(--foreground);stroke-opacity:.45;stroke-width:1}
+.chartbox{position:relative}
+.tip{position:absolute;pointer-events:none;background:var(--popover);color:var(--popover-foreground,var(--foreground));border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.18);opacity:0;transition:opacity .08s;white-space:nowrap;z-index:2}
+.tip b{font-weight:600}
+.tip .row{display:flex;align-items:center;gap:6px;justify-content:space-between}
+.tip .row .k{display:flex;align-items:center;gap:6px;color:var(--muted-foreground)}
+.ctrl{display:flex;align-items:center;gap:12px;font-size:13px;margin:6px 0 4px}
+.ctrl input{flex:1;accent-color:var(--primary)}
+.ctrl .v{min-width:150px;font-weight:600}
+.callout{background:var(--secondary);border-radius:var(--radius);padding:12px 16px;font-size:13px;margin-top:10px}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rule{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-size:13px}
+.rule b{display:block;margin-bottom:3px;font-size:13.5px}
+.rule code{font-family:var(--font-mono);font-size:12px;background:var(--code-background,var(--secondary));padding:1px 5px;border-radius:4px}
+details{margin-top:24px;font-size:13px}
+summary{cursor:pointer;font-weight:600}
+table{border-collapse:collapse;width:100%;margin-top:8px;font-variant-numeric:tabular-nums;font-size:12.5px}
+th,td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--border)}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted-foreground);font-weight:500}
+td.neg{color:var(--muted-foreground)}
+.foot{font-size:11.5px;color:var(--muted-foreground);margin-top:18px}
+@media (max-width:560px){.tiles,.rules{grid-template-columns:1fr}}
+</style></head>
+<body><div class="wrap">
+<h1>LEAP calls: what does a 5% stock move get you?</h1>
+
+<p class="lede">If you buy a 1-year call and the stock rises 5%, what you earn depends mostly on <b style="color:var(--foreground)">how quickly</b> the stock gets there. Buying 1%, 2% or 3% out of the money changes the result much less.</p>
+
+<div class="tiles">
+  <div class="tile"><div class="n">+23–25%</div><div class="l">Return if the 5% gain happens immediately, for strikes from at the money to 5% out of the money (about 5× leverage)</div></div>
+  <div class="tile"><div class="n">~4 months</div><div class="l">The 5% gain has to happen within about 4 months for these calls to make any money at all</div></div>
+  <div class="tile"><div class="n">+14–16.5%</div><div class="l">How much the stock must be up at expiration to break even, for strikes from at the money to 5% out of the money</div></div>
+</div>
+
+<h2>The same 5% gain, reached at different times</h2>
+<p class="sub">Your LEAP's return if the stock reaches +5% after the number of months shown</p>
+<div class="legend" id="lg1"></div>
+<div class="chartbox" id="c1"><div class="tip" id="t1"></div></div>
+
+<h2>Comparing strikes, one timing at a time</h2>
+<p class="sub">Drag the slider to change when the stock reaches +5%</p>
+<div class="ctrl"><span class="v" id="mv"></span><input type="range" min="0" max="12" value="0" id="sl" aria-label="Months until the stock is up 5%"></div>
+<div class="chartbox" id="c2"><div class="tip" id="t2"></div></div>
+
+<h2>What you need at expiration to break even</h2>
+<p class="sub">How much the stock must rise by expiration to cover the strike plus what you paid. The dashed line is a 5% gain.</p>
+<div class="chartbox" id="c3"><div class="tip" id="t3"></div></div>
+<div class="callout"><b>If the stock doesn't move,</b> you still lose. After 6 months with the stock flat, these calls are down <b>32–38%</b> (strikes from at the money to 5% out of the money) and down <b>44%</b> for a 10% out-of-the-money strike. That loss is time value wearing off.</div>
+
+<h2>Rules of thumb</h2>
+<div class="rules">
+  <div class="rule"><b>Leverage on a fast move</b><code>delta × stock price ÷ option price</code><br>For 1-year calls near the money, that's about 4–5×.</div>
+  <div class="rule"><b>Strike barely changes it</b>Going further out of the money makes the call cheaper but also lowers its delta, so the two mostly cancel. From at the money to 5% out of the money, leverage only goes from 23% to 25%.</div>
+  <div class="rule"><b>You're paying for time</b>An at-the-money 1-year call costs about 0.4 × IV × √years, plus a bit for interest rates. That's ~14% of the stock price here, and you lose it if the stock goes nowhere.</div>
+  <div class="rule"><b>Volatility sets the price</b>At 60% IV the calls cost about twice as much and a 5% move barely registers. At 20% IV they're cheaper and the leverage is higher. Changes in IV after you buy also move the price.</div>
+</div>
+
+<details><summary>All the numbers</summary>
+<table id="tbl"></table>
+</details>
+
+<p class="foot">Priced with Black-Scholes: stock at $100, 1-year expiration, 30% implied volatility, 4% interest rate, no dividends. Assumes IV stays the same. Real prices will differ because of volatility skew, dividends and changes in IV. This is an illustration, not investment advice.</p>
+</div>
+
+<script>
+const D={"0": {"cost": 13.75, "delta": 0.61, "be": 13.8, "up5": [23.4, 18.5, 13.5, 8.3, 2.8, -2.9, -9.0, -15.6, -22.7, -30.5, -39.5, -50.4, -63.6], "flat6": -31.7}, "1": {"cost": 13.29, "delta": 0.6, "be": 14.3, "up5": [23.7, 18.7, 13.4, 8.0, 2.3, -3.7, -10.1, -16.9, -24.4, -32.6, -42.1, -53.8, -69.9], "flat6": -32.9}, "2": {"cost": 12.83, "delta": 0.59, "be": 14.8, "up5": [24.1, 18.8, 13.4, 7.7, 1.7, -4.5, -11.2, -18.3, -26.1, -34.8, -44.8, -57.3, -76.6], "flat6": -34.1}, "3": {"cost": 12.39, "delta": 0.57, "be": 15.4, "up5": [24.4, 19.0, 13.3, 7.4, 1.2, -5.3, -12.3, -19.7, -27.9, -36.9, -47.4, -60.6, -83.9], "flat6": -35.3}, "4": {"cost": 11.96, "delta": 0.56, "be": 16.0, "up5": [24.8, 19.1, 13.2, 7.1, 0.6, -6.2, -13.4, -21.2, -29.6, -39.1, -50.0, -63.9, -91.6], "flat6": -36.5}, "5": {"cost": 11.54, "delta": 0.55, "be": 16.5, "up5": [25.1, 19.2, 13.1, 6.7, 0.0, -7.1, -14.6, -22.6, -31.4, -41.2, -52.6, -67.1, -100.0], "flat6": -37.7}, "10": {"cost": 9.63, "delta": 0.49, "be": 19.6, "up5": [27.0, 19.9, 12.5, 4.8, -3.2, -11.6, -20.5, -30.1, -40.5, -51.9, -65.0, -80.9, -100.0], "flat6": -43.8}, "15": {"cost": 7.99, "delta": 0.43, "be": 23.0, "up5": [28.8, 20.4, 11.7, 2.7, -6.7, -16.5, -26.8, -37.7, -49.4, -61.9, -75.5, -90.3, -100.0], "flat6": -49.8}, "20": {"cost": 6.59, "delta": 0.37, "be": 26.6, "up5": [30.7, 20.8, 10.7, 0.2, -10.5, -21.7, -33.3, -45.3, -57.8, -70.7, -83.9, -95.7, -100.0], "flat6": -55.6}}
+;
+const strikes=[0,1,2,3,4,5,10,15,20];
+const name=o=>o===0?'At the money':o+'% out of the money';
+const fmt=v=>(v>0?'+':'')+v.toFixed(0)+'%';
+const NS='http://www.w3.org/2000/svg';
+const el=(t,a={},p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+const W=()=>document.querySelector('.wrap').clientWidth;
+
+// ---------- Chart 1: lines ----------
+const S1=[{o:0,c:'var(--chart-1)'},{o:3,c:'var(--chart-2)'},{o:5,c:'var(--chart-3)'},{o:20,c:'var(--chart-4)'}];
+document.getElementById('lg1').innerHTML=S1.map(s=>`<span><i class="sw" style="background:${s.c}"></i>${name(s.o)}</span>`).join('');
+function chart1(){
+  const box=document.getElementById('c1'),tip=document.getElementById('t1');
+  box.querySelectorAll('svg').forEach(s=>s.remove());
+  const w=W(),h=300,m={l:44,r:118,t:10,b:30},iw=w-m.l-m.r,ih=h-m.t-m.b;
+  const x=i=>m.l+i/12*iw,y=v=>m.t+(40-v)/140*ih;
+  const svg=el('svg',{width:w,height:h,role:'img','aria-label':'Line chart: LEAP return against the month the 5% gain arrives'});
+  box.insertBefore(svg,tip);
+  const g=el('g',{class:'grid'},svg);
+  [40,20,0,-20,-40,-60,-80,-100].forEach(v=>{if(v!==0)el('line',{x1:m.l,x2:m.l+iw,y1:y(v),y2:y(v)},g);const t=el('text',{x:m.l-8,y:y(v)+4,'text-anchor':'end'},svg);t.textContent=fmt(v)});
+  [0,3,6,9,12].forEach(i=>{const t=el('text',{x:x(i),y:h-8,'text-anchor':'middle'},svg);t.textContent=i===0?'Immediately':i===12?'At expiry':i+' mo'});
+  // profit / loss band labels
+  const pt=el('text',{x:m.l+iw-4,y:y(0)-6,'text-anchor':'end'},svg);pt.textContent='profit ↑';
+  const lt=el('text',{x:m.l+iw-4,y:y(0)+14,'text-anchor':'end'},svg);lt.textContent='loss ↓';
+  el('line',{class:'zero',x1:m.l,x2:m.l+iw,y1:y(0),y2:y(0)},svg);
+  // breakeven window
+  const bw=el('rect',{x:x(0),y:m.t,width:x(4)-x(0),height:y(0)-m.t,fill:'var(--success)',opacity:.07},svg);
+  const bwt=el('text',{x:x(2),y:m.t+12,'text-anchor':'middle'},svg);bwt.textContent='profit window ≈ 4 mo';
+  S1.forEach(s=>{
+    const pts=D[s.o].up5.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
+    el('polyline',{points:pts,fill:'none',stroke:s.c,'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'},svg);
+  });
+  // direct labels at the immediate end (they're bunched at expiry for 5%/20%)
+  [[0,'ATM'],[3,'3% OTM']].forEach(([o,l])=>{const t=el('text',{x:x(12)+8,y:y(D[o].up5[12])+4},svg);t.textContent=l+' '+fmt(D[o].up5[12])});
+  const t5=el('text',{x:x(12)+8,y:y(-100)+4},svg);t5.textContent='5%, 20% −100%';
+  // hover
+  const cross=el('line',{y1:m.t,y2:m.t+ih,stroke:'var(--foreground)','stroke-opacity':.35,'stroke-width':1,visibility:'hidden'},svg);
+  const dots=S1.map(s=>el('circle',{r:4.5,fill:s.c,stroke:'var(--background)','stroke-width':2,visibility:'hidden'},svg));
+  const hit=el('rect',{x:m.l,y:0,width:iw,height:h,fill:'transparent'},svg);
+  hit.addEventListener('pointermove',e=>{
+    const r=svg.getBoundingClientRect();const i=Math.max(0,Math.min(12,Math.round((e.clientX-r.left-m.l)/iw*12)));
+    cross.setAttribute('x1',x(i));cross.setAttribute('x2',x(i));cross.setAttribute('visibility','visible');
+    S1.forEach((s,k)=>{dots[k].setAttribute('cx',x(i));dots[k].setAttribute('cy',y(D[s.o].up5[i]));dots[k].setAttribute('visibility','visible')});
+    tip.innerHTML=`<b>Stock +5% ${i===0?'immediately':i===12?'at expiration':'after '+i+' month'+(i>1?'s':'')}</b>`+S1.map(s=>`<div class="row"><span class="k"><i class="sw" style="background:${s.c}"></i>${name(s.o)}</span><b>${fmt(D[s.o].up5[i])}</b></div>`).join('');
+    tip.style.opacity=1;const tx=x(i)+14;tip.style.left=(tx+tip.offsetWidth>w?x(i)-tip.offsetWidth-14:tx)+'px';tip.style.top='20px';
+  });
+  hit.addEventListener('pointerleave',()=>{tip.style.opacity=0;cross.setAttribute('visibility','hidden');dots.forEach(d=>d.setAttribute('visibility','hidden'))});
+}
+
+// ---------- Chart 2: bars by strike for chosen month ----------
+let month=0;
+function chart2(){
+  const box=document.getElementById('c2'),tip=document.getElementById('t2');
+  box.querySelectorAll('svg').forEach(s=>s.remove());
+  document.getElementById('mv').textContent=month===0?'+5% immediately':month===12?'+5% at expiration':`+5% after ${month} month${month>1?'s':''}`;
+  const w=W(),h=250,m={l:44,r:8,t:18,b:34},iw=w-m.l-m.r,ih=h-m.t-m.b;
+  const y=v=>m.t+(40-v)/140*ih;const n=strikes.length,bw=iw/n,pad=bw*0.28;
+  const svg=el('svg',{width:w,height:h,role:'img','aria-label':'Bar chart: return by strike'});box.insertBefore(svg,tip);
+  const g=el('g',{class:'grid'},svg);
+  [40,20,-20,-40,-60,-80,-100].forEach(v=>el('line',{x1:m.l,x2:m.l+iw,y1:y(v),y2:y(v)},g));
+  [40,0,-50,-100].forEach(v=>{const t=el('text',{x:m.l-8,y:y(v)+4,'text-anchor':'end'},svg);t.textContent=fmt(v)});
+  strikes.forEach((o,i)=>{
+    const v=D[o].up5[month],x0=m.l+i*bw+pad,bwid=bw-2*pad,r=Math.min(4,bwid/2);
+    const top=Math.min(y(v),y(0)),hh=Math.abs(y(v)-y(0));
+    const col=v>=0?'var(--success)':'var(--destructive)';
+    // rounded data-end only, anchored at baseline
+    let d;
+    if(hh<0.5){d=''}else if(v>=0){const rr=Math.min(r,hh);d=`M${x0},${y(0)}V${top+rr}Q${x0},${top} ${x0+rr},${top}H${x0+bwid-rr}Q${x0+bwid},${top} ${x0+bwid},${top+rr}V${y(0)}Z`}
+    else{const b=y(v),rr=Math.min(r,hh);d=`M${x0},${y(0)}V${b-rr}Q${x0},${b} ${x0+rr},${b}H${x0+bwid-rr}Q${x0+bwid},${b} ${x0+bwid},${b-rr}V${y(0)}Z`}
+    if(d)el('path',{d,fill:col},svg);
+    const lt=el('text',{x:x0+bwid/2,y:v>=0?top-5:top+hh+13,'text-anchor':'middle',style:'fill:var(--foreground);font-weight:600'},svg);lt.textContent=fmt(v);
+    const xl=el('text',{x:x0+bwid/2,y:h-14,'text-anchor':'middle'},svg);xl.textContent=o===0?'ATM':o+'%';
+    const hit=el('rect',{x:m.l+i*bw,y:m.t,width:bw,height:ih,fill:'transparent'},svg);
+    hit.addEventListener('pointermove',()=>{tip.innerHTML=`<b>${name(o)}</b><div class="row"><span class="k">Cost</span><b>$${D[o].cost.toFixed(2)}</b></div><div class="row"><span class="k">Delta</span><b>${D[o].delta.toFixed(2)}</b></div><div class="row"><span class="k">Return</span><b>${fmt(v)}</b></div>`;tip.style.opacity=1;const cx=x0+bwid+8;tip.style.left=(cx+tip.offsetWidth>w?x0-tip.offsetWidth-8:cx)+'px';tip.style.top='10px'});
+    hit.addEventListener('pointerleave',()=>tip.style.opacity=0);
+  });
+  el('line',{class:'zero',x1:m.l,x2:m.l+iw,y1:y(0),y2:y(0)},svg);
+  const cap=el('text',{x:m.l+iw/2,y:h-1,'text-anchor':'middle'},svg);cap.textContent='Strike, % out of the money';
+}
+document.getElementById('sl').addEventListener('input',e=>{month=+e.target.value;chart2()});
+
+// ---------- Chart 3: breakeven bars ----------
+function chart3(){
+  const box=document.getElementById('c3'),tip=document.getElementById('t3');
+  box.querySelectorAll('svg').forEach(s=>s.remove());
+  const w=W(),rowH=24,m={l:150,r:56,t:20,b:24},h=m.t+m.b+strikes.length*rowH,iw=w-m.l-m.r;
+  const x=v=>m.l+v/30*iw;
+  const svg=el('svg',{width:w,height:h,role:'img','aria-label':'Bar chart: stock move needed to break even at expiry'});box.insertBefore(svg,tip);
+  const g=el('g',{class:'grid'},svg);
+  [0,10,20,30].forEach(v=>{el('line',{x1:x(v),x2:x(v),y1:m.t,y2:h-m.b},g);const t=el('text',{x:x(v),y:h-6,'text-anchor':'middle'},svg);t.textContent='+'+v+'%'});
+  strikes.forEach((o,i)=>{
+    const be=D[o].be,yy=m.t+i*rowH+5,bh=rowH-10,len=x(be)-x(0);
+    // split: strike distance (darker) + premium (lighter), 2px gap
+    const sk=x(o)-x(0);
+    if(sk>0)el('rect',{x:x(0),y:yy,width:Math.max(0,sk-1),height:bh,fill:'var(--chart-2)',opacity:.55},svg);
+    const px=x(0)+(sk>0?sk+1:0),pw=len-(sk>0?sk+1:0),r=Math.min(4,bh/2);
+    el('path',{d:`M${px},${yy}H${px+pw-r}Q${px+pw},${yy} ${px+pw},${yy+r}V${yy+bh-r}Q${px+pw},${yy+bh} ${px+pw-r},${yy+bh}H${px}Z`,fill:'var(--chart-1)'},svg);
+    const lb=el('text',{x:m.l-10,y:yy+bh/2+4,'text-anchor':'end',style:'fill:var(--foreground)'},svg);lb.textContent=name(o);
+    const vl=el('text',{x:x(be)+6,y:yy+bh/2+4,style:'fill:var(--foreground);font-weight:600'},svg);vl.textContent='+'+be.toFixed(1)+'%';
+    const hit=el('rect',{x:0,y:m.t+i*rowH,width:w,height:rowH,fill:'transparent'},svg);
+    hit.addEventListener('pointermove',e=>{const r=box.getBoundingClientRect();tip.innerHTML=`<b>${name(o)}</b><div class="row"><span class="k">Strike above today's price</span><b>+${o}%</b></div><div class="row"><span class="k">Premium paid</span><b>+${(be-o).toFixed(1)}%</b></div><div class="row"><span class="k">Break-even at expiration</span><b>+${be.toFixed(1)}%</b></div>`;tip.style.opacity=1;tip.style.left=Math.min(e.clientX-r.left+14,w-tip.offsetWidth)+'px';tip.style.top=(m.t+i*rowH+rowH)+'px'});
+    hit.addEventListener('pointerleave',()=>tip.style.opacity=0);
+  });
+  el('line',{x1:x(5),x2:x(5),y1:m.t-14,y2:h-m.b,stroke:'var(--foreground)','stroke-dasharray':'3 3','stroke-opacity':.6},svg);
+  const t=el('text',{x:x(5)+4,y:m.t-6,style:'fill:var(--foreground)'},svg);t.textContent='your +5%';
+}
+// legend for chart 3 parts
+const c3=document.getElementById('c3');const lg=document.createElement('div');lg.className='legend';
+lg.innerHTML='<span><i class="sw" style="background:var(--chart-2);opacity:.55;height:10px"></i>Distance to the strike</span><span><i class="sw" style="background:var(--chart-1);height:10px"></i>Premium you paid</span>';
+c3.parentNode.insertBefore(lg,c3);
+
+// ---------- Table ----------
+const T=document.getElementById('tbl');
+T.innerHTML='<tr><th>Strike</th><th>Cost</th><th>Delta</th><th>+5% now</th><th>3 mo</th><th>6 mo</th><th>9 mo</th><th>Expiry</th><th>Break-even</th><th>Flat 6 mo</th></tr>'+
+strikes.map(o=>{const d=D[o];return `<tr><td>${o===0?'ATM':o+'% OTM'}</td><td>$${d.cost.toFixed(2)}</td><td>${d.delta.toFixed(2)}</td>${[0,3,6,9,12].map(i=>`<td>${fmt(d.up5[i])}</td>`).join('')}<td>+${d.be.toFixed(1)}%</td><td>${fmt(d.flat6)}</td></tr>`}).join('');
+
+function all(){chart1();chart2();chart3()}
+all();let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(all,100)});
+</script>
+</body></html>
